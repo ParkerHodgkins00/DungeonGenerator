@@ -187,7 +187,7 @@ def generateDungeon(dun, threshhold):
                         rand = random.randint(0, len(roomList) - 1)
                         newRoomShape = roomList[rand]
                         hiddenRand = random.randint(1,20)
-                        if hiddenRand <= 0:
+                        if hiddenRand <= 20:
                             newRoomShape = newRoomShape + "H"
                         #print(roomShape, " is connecting to ", newRoomShape, "At position ", newX,", ",newY, "after picking from list: ", roomList)
                         dun[newY][newX] = newRoomShape
