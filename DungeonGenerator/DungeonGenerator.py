@@ -1,6 +1,7 @@
 import random
 import time
 from collections import defaultdict
+import keyboard
 
 playerPos = [0,0]
 dungeonSize = input("Dungeon Size: ")
@@ -12,13 +13,6 @@ def clearDungeon(dun):
         for x in range(0,len(dun[y])):
             dun[y][x] = ""
 
-
-directionDict = {
-    "U": [0, -1],
-    "D": [0, 1],
-    "R": [1, 0],
-    "L": [-1, 0]
-}
 inputDict = defaultdict(lambda: "??!!")
 inputDict["W"] = "U"
 inputDict["A"] = "L"
@@ -89,27 +83,27 @@ def getRoomShape(roomShape):
             #roomShapeArray[3] = "|     |"
             #Top and Bottom Logic
             if "U" in roomShape:
-                roomShapeArray[0] = "#   #"
+                roomShapeArray[0] = "+   +"
             else:
-                roomShapeArray[0] = "#####"
+                roomShapeArray[0] = "+---+"
 
             if "D" in roomShape:
-                roomShapeArray[2] = "#   #"
+                roomShapeArray[2] = "+   +"
             else:
-                roomShapeArray[2] = "#####"
+                roomShapeArray[2] = "+---+"
 
             #Left and Right Logic
             if "R" in roomShape and "L" in roomShape:
                 roomShapeArray[1] = "     "
 
             elif "R" in roomShape:
-                roomShapeArray[1] = "#    "
+                roomShapeArray[1] = "|    "
 
             elif "L" in roomShape:
-                roomShapeArray[1] = "    #"
+                roomShapeArray[1] = "    |"
     
             else:
-                roomShapeArray[1] = "#   #"
+                roomShapeArray[1] = "|   |"
 
     if "X" in roomShape:
         roomShapeArray[1] = roomShapeArray[1][:2] + "X" + roomShapeArray[1][3:]
@@ -187,7 +181,7 @@ def generateDungeon(dun, threshhold):
                         rand = random.randint(0, len(roomList) - 1)
                         newRoomShape = roomList[rand]
                         hiddenRand = random.randint(1,20)
-                        if hiddenRand <= 20:
+                        if hiddenRand <= 10:
                             newRoomShape = newRoomShape + "H"
                         #print(roomShape, " is connecting to ", newRoomShape, "At position ", newX,", ",newY, "after picking from list: ", roomList)
                         dun[newY][newX] = newRoomShape
@@ -229,19 +223,45 @@ generatedDungeon = generateDungeon(emptyDungeon, 0.75)
 clearScreen()
 printDungeon(generatedDungeon)
 
-while True:
+def move(moveDir):
     playerPos = getPlayerPosition(generatedDungeon)
     x = playerPos[0]
     y = playerPos[1]
-    currentRoom = generatedDungeon[y][x]
-    inp = getDirectionInput("Direction: ", currentRoom)
-    direc = directionDict[inp]
-    newX = x + direc[0]
-    newY = y + direc[1]
-    generatedDungeon[y][x] = generatedDungeon[y][x].replace('X', '')
-    generatedDungeon[y][x] = generatedDungeon[y][x].replace('H', '')
-    generatedDungeon[newY][newX] = generatedDungeon[newY][newX] + "X"
-    generatedDungeon[newY][newX] = generatedDungeon[newY][newX].replace('H', '')
-    clearScreen()
-    printDungeon(generatedDungeon)
+    newX = x + moveDir[0]
+    newY = y + moveDir[1]
+    direc = "W"
+    if moveDir == [0, 1]:
+        direc = "D"
+    elif moveDir == [0, -1]:
+        direc = "U"
+    elif moveDir == [1, 0]:
+        direc = "R"
+    elif moveDir == [-1, 0]:
+        direc = "L"
+    
+    print(direc)
+    if validateDungeonSpace(generatedDungeon, newX, newY, direc) and generatedDungeon[newY][newX] != "":
+        generatedDungeon[y][x] = generatedDungeon[y][x].replace('X', '')
+        generatedDungeon[y][x] = generatedDungeon[y][x].replace('H', '')
+        generatedDungeon[newY][newX] = generatedDungeon[newY][newX] + "X"
+        generatedDungeon[newY][newX] = generatedDungeon[newY][newX].replace('H', '')
+        clearScreen()
+        printDungeon(generatedDungeon)
+        return
 
+    else:
+        clearScreen()
+        printDungeon(generatedDungeon)
+        print("Invalid")
+
+
+keyboard.add_hotkey('w', lambda: move([0,-1]))
+keyboard.add_hotkey('s', lambda: move([0,1]))
+keyboard.add_hotkey('a', lambda: move([-1,0]))
+keyboard.add_hotkey('d', lambda: move([1,0]))
+
+try:
+    while True:
+        time.sleep(0.1)  # Slight delay to prevent high CPU usage
+except KeyboardInterrupt:
+    print("Program interrupted. Exiting...")
